@@ -17,6 +17,22 @@ Features:
 6) Seed at least one court (via Prisma Studio or POST /api/courts with admin session).
 7) `npm run dev` and open http://localhost:3000
 
+## Deploy with Docker Compose + Nginx
+
+1) Copy `.env.example` to `.env` and set values. For Compose, `DATABASE_URL` should point to `db` service, e.g. `postgresql://padel:padel@db:5432/padel?schema=public`.
+2) On your VPS with Docker, run:
+
+	- Build and start: `docker compose up -d --build`
+	- Run migrations once (when schema changes): `docker compose run --rm migrate`
+
+3) Visit your server IP/domain on port 80. Adjust `NEXTAUTH_URL` and `APP_URL` to your domain.
+
+Notes:
+- TLS: Terminate HTTPS at Nginx. Add certs (e.g., via certbot) and listen on 443 in `nginx/nginx.conf`.
+- Scaling: You can add `deploy.replicas` (Swarm) or use Docker Compose profiles and an external load balancer.
+- Logs: `docker compose logs -f app` and `docker compose logs -f nginx`.
+- Prisma: In containers, `DATABASE_URL` must be reachable from the app container. The provided Compose sets it to the `db` service by default.
+
 ## Auth
 
 - Email/Phone + password using Credentials provider.

@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    image: padel-app:latest
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    environment:
+      NODE_ENV: production
+      # Ensure Next reads correct URL (set on VPS domain)
+      NEXTAUTH_URL: "${NEXTAUTH_URL:-https://padel.mavoid.com}"
+      # Override DB URL to the internal Postgres service if not set externally
+      DATABASE_URL: "${DATABASE_URL:-postgresql://${POSTGRES_USER:-padel}:${POSTGRES_PASSWORD:-padel}@db:5432/${POSTGRES_DB:-padel}?schema=public}"
+    ports:
+      - "127.0.0.1:3070:3000" # host-level Nginx will proxy to this
+    depends_on:
+      - db
+    networks:
+      - internal
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-padel}
+      POSTGRES_USER: ${POSTGRES_USER:-padel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-padel}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-padel} -d ${POSTGRES_DB:-padel}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Optional one-off migration job (run manually when needed)
+  migrate:
+    build: .
+    image: padel-app:latest
+    command: ["npx", "prisma", "migrate", "deploy"]
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+    networks:
+      - internal
+    profiles: ["migrate"]
+
+
+volumes:
+  db_data:
+
+networks:
+  internal:
