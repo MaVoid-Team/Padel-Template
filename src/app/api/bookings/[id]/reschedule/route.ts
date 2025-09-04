@@ -3,9 +3,9 @@ import { auth } from '@/lib/auth'
 import { NextResponse, type NextRequest } from 'next/server'
 import { addMinutes } from 'date-fns'
 
-export async function POST(req: NextRequest, { params }: { params: Record<string, string | string[]> }) {
-  const raw = params['id']
-  const id = Array.isArray(raw) ? raw[0] : raw
+export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const params = await context.params
+  const id = params.id
   if (!id) return new NextResponse('Bad Request: missing id', { status: 400 })
   const session = await auth()
   if (!session) return new NextResponse('Unauthorized', { status: 401 })
