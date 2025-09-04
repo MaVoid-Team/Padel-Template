@@ -14,15 +14,16 @@ FROM node:20-slim AS builder
 WORKDIR /app
 # System deps needed by Prisma engines during generate
 RUN apt-get update -y \
-	&& apt-get install -y --no-install-recommends openssl libssl3 \
-	&& rm -rf /var/lib/apt/lists/*
+    && apt-get install -y --no-install-recommends openssl libssl3 \
+    && rm -rf /var/lib/apt/lists/*
 COPY package*.json ./
 # Reuse deps installed earlier to avoid reinstall
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Set a dummy DATABASE_URL for build time (Prisma schema validation)
+ENV DATABASE_URL="prisma+postgres://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqd3RfaWQiOjEsInNlY3VyZV9rZXkiOiJza18xcW1YSmwzWGdmaEQ3NUlGU2g1VDYiLCJhcGlfa2V5IjoiMDFLNEE0Q0VHRFJUV0dONVhLQVRYVkowTTgiLCJ0ZW5hbnRfaWQiOiIyOGNlZjdhMzIxYmU2OGJhYTBlY2Y5OTFmOGNkNmFhMDYzN2QwZmQ3OGYzYWJiM2U0ZThhMGNhNGQzMDhjMjg5IiwiaW50ZXJuYWxfc2VjcmV0IjoiNWUyNTcyY2QtODE5NC00YzQ1LWE4ZDItY2EyMDBlZmUzMDRjIn0.FF2cQUpwFpf2p02A8ACaARNj0QL95TfQYVtCvTpdvlY"
 # Generate Prisma client and build Next.js
 RUN npx prisma generate && npm run build
-
 FROM node:20-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
