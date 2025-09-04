@@ -31,9 +31,9 @@ RUN apt-get update -y \
 	&& apt-get install -y --no-install-recommends openssl libssl3 \
 	&& rm -rf /var/lib/apt/lists/*
 
-# Install only production deps
+# Install only production deps (skip postinstall scripts like prisma generate)
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 
 # Copy necessary runtime artifacts
 COPY --from=builder /app/next.config.mjs ./next.config.mjs
