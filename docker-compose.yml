@@ -19,8 +19,6 @@ services:
       DATABASE_URL: prisma+postgres://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqd3RfaWQiOjEsInNlY3VyZV9rZXkiOiJza18xcW1YSmwzWGdmaEQ3NUlGU2g1VDYiLCJhcGlfa2V5IjoiMDFLNEE0Q0VHRFJUV0dONVhLQVRYVkowTTgiLCJ0ZW5hbnRfaWQiOiIyOGNlZjdhMzIxYmU2OGJhYTBlY2Y5OTFmOGNkNmFhMDYzN2QwZmQ3OGYzYWJiM2U0ZThhMGNhNGQzMDhjMjg5IiwiaW50ZXJuYWxfc2VjcmV0IjoiNWUyNTcyY2QtODE5NC00YzQ1LWE4ZDItY2EyMDBlZmUzMDRjIn0.FF2cQUpwFpf2p02A8ACaARNj0QL95TfQYVtCvTpdvlY
     ports:
       - "127.0.0.1:3070:3000" # host-level Nginx will proxy to this
-    depends_on:
-      - db
     networks:
       - internal
 
