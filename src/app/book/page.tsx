@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { addMinutes, formatISO } from 'date-fns'
+import CalendarAvailability from '@/components/CalendarAvailability'
 
 export default function Book() {
   const [courts, setCourts] = useState<any[]>([])
@@ -8,16 +8,12 @@ export default function Book() {
   const [date, setDate] = useState<string>('')
   const [time, setTime] = useState<string>('')
   const [duration, setDuration] = useState<number>(60)
-  const [amount, setAmount] = useState<number>(15000) // 150 EGP * 100 (piastres)
+  const [amount, setAmount] = useState<number>(15000)
   const [method, setMethod] = useState<'CASH'|'PAYMOB'>('CASH')
-  const [billing, setBilling] = useState<any>({
-    apartment: "NA", email: "test@example.com", floor: "NA", first_name: "Padel",
-    street: "NA", building: "NA", phone_number: "+201000000000", shipping_method: "NA",
-    postal_code: "NA", city: "Cairo", country: "EG", last_name: "User", state: "Cairo"
-  })
+  const [billing, setBilling] = useState<any>({ apartment: "NA", email: "test@example.com", floor: "NA", first_name: "Padel", street: "NA", building: "NA", phone_number: "+201000000000", shipping_method: "NA", postal_code: "NA", city: "Cairo", country: "EG", last_name: "User", state: "Cairo" })
   const [msg, setMsg] = useState('')
 
-  useEffect(()=>{ fetch('/api/courts').then(r=>r.json()).then(setCourts) },[])
+  useEffect(()=>{ fetch('/api/courts').then(r=>r.json()).then(data=>{ setCourts(data); if (data && data[0]) setCourtId(data[0].id) }) },[])
 
   async function book() {
     const dt = new Date(date + 'T' + time + ':00')
@@ -38,24 +34,26 @@ export default function Book() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <h1 className="text-xl font-semibold">Book a court</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <select value={courtId} onChange={e=>setCourtId(e.target.value)} className="border p-2">
+        <select value={courtId} onChange={e=>setCourtId(e.target.value)} className="border p-2 w-full">
           <option value="">Select court</option>
           {courts.map(c=> <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
-        <input type="date" value={date} onChange={e=>setDate(e.target.value)} className="border p-2"/>
-        <input type="time" value={time} onChange={e=>setTime(e.target.value)} className="border p-2"/>
-        <input type="number" value={duration} onChange={e=>setDuration(parseInt(e.target.value))} className="border p-2" placeholder="Duration (mins)"/>
-        <input type="number" value={amount} onChange={e=>setAmount(parseInt(e.target.value))} className="border p-2" placeholder="Amount (piastres)"/>
-        <select value={method} onChange={e=>setMethod(e.target.value as any)} className="border p-2">
+        <input type="date" value={date} onChange={e=>setDate(e.target.value)} className="border p-2 w-full"/>
+        <input type="time" value={time} onChange={e=>setTime(e.target.value)} className="border p-2 w-full"/>
+        <input type="number" value={duration} onChange={e=>setDuration(parseInt(e.target.value))} className="border p-2 w-full" placeholder="Duration (mins)"/>
+        <input type="number" value={amount} onChange={e=>setAmount(parseInt(e.target.value))} className="border p-2 w-full" placeholder="Amount (piastres)"/>
+        <select value={method} onChange={e=>setMethod(e.target.value as any)} className="border p-2 w-full">
           <option value="CASH">Cash on Arrival</option>
           <option value="PAYMOB">Paymob (Card/Wallet)</option>
         </select>
       </div>
       <button onClick={book} className="border px-4 py-2">Book</button>
       <div>{msg}</div>
+
+      <CalendarAvailability courtId={courtId} />
     </div>
   )
 }
