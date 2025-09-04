@@ -4,10 +4,21 @@ FROM node:20-slim AS deps
 WORKDIR /app
 COPY package*.json ./
 # Install all deps including devDeps (needed for prisma generate in build stage)
-RUN npm ci
+# System deps needed by Prisma engines
+RUN apt-get update -y \
+	&& apt-get install -y --no-install-recommends openssl libssl3 \
+	&& rm -rf /var/lib/apt/lists/* \
+	&& npm ci --ignore-scripts
 
-FROM deps AS builder
+FROM node:20-slim AS builder
 WORKDIR /app
+# System deps needed by Prisma engines during generate
+RUN apt-get update -y \
+	&& apt-get install -y --no-install-recommends openssl libssl3 \
+	&& rm -rf /var/lib/apt/lists/*
+COPY package*.json ./
+# Reuse deps installed earlier to avoid reinstall
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # Generate Prisma client and build Next.js
 RUN npx prisma generate && npm run build
@@ -15,10 +26,14 @@ RUN npx prisma generate && npm run build
 FROM node:20-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+ # Ensure Prisma runtime has OpenSSL available
+RUN apt-get update -y \
+	&& apt-get install -y --no-install-recommends openssl libssl3 \
+	&& rm -rf /var/lib/apt/lists/*
 
-# Install only production deps (skip postinstall scripts like prisma generate)
+# Install only production deps
 COPY package*.json ./
-RUN npm ci --omit=dev --ignore-scripts
+RUN npm ci --omit=dev
 
 # Copy necessary runtime artifacts
 COPY --from=builder /app/next.config.mjs ./next.config.mjs
