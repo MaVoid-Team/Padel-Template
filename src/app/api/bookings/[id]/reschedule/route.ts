@@ -3,12 +3,15 @@ import { auth } from '@/lib/auth'
 import { NextResponse, type NextRequest } from 'next/server'
 import { addMinutes } from 'date-fns'
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Record<string, string | string[]> }) {
+  const raw = params['id']
+  const id = Array.isArray(raw) ? raw[0] : raw
+  if (!id) return new NextResponse('Bad Request: missing id', { status: 400 })
   const session = await auth()
   if (!session) return new NextResponse('Unauthorized', { status: 401 })
   const body = await req.json()
   const { newStartTime, durationMins } = body
-  const booking = await prisma.booking.findUnique({ where: { id: params.id } })
+  const booking = await prisma.booking.findUnique({ where: { id } })
   if (!booking) return new NextResponse('Not found', { status: 404 })
   const userId = (session.user as any).id || (session as any).userId
   const isOwner = booking.userId === userId
