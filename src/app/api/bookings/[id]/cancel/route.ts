@@ -1,8 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 
-export async function POST(_: Request, { params }: { params: { id: string } }) {
+export async function POST(_: NextRequest, { params }: { params: { id: string } }) {
   const session = await auth()
   if (!session) return new NextResponse('Unauthorized', { status: 401 })
   const booking = await prisma.booking.findUnique({ where: { id: params.id } })
