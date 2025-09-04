@@ -38,7 +38,6 @@ RUN npm ci --omit=dev --ignore-scripts
 
 # Copy necessary runtime artifacts
 COPY --from=builder /app/next.config.mjs ./next.config.mjs
-COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/prisma ./prisma
 # Copy generated Prisma client and engines from builder
