@@ -16,9 +16,9 @@ FROM node:20-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Install only production deps
+# Install only production deps (skip postinstall scripts like prisma generate)
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 
 # Copy necessary runtime artifacts
 COPY --from=builder /app/next.config.mjs ./next.config.mjs
