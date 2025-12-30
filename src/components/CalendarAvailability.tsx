@@ -18,7 +18,11 @@ export default function CalendarAvailability({ courtId }: { courtId?: string }) 
   useEffect(()=>{
     if (!courtId) return
     async function load() {
-      const q = new URLSearchParams({ courtId, start: rangeStart, end: rangeEnd })
+      const q = new URLSearchParams({ 
+        courtId: courtId!, // 👈 The '!' tells TS this won't be undefined
+        start: rangeStart, 
+        end: rangeEnd 
+      });
       const res = await fetch('/api/bookings/availability?' + q.toString())
       if (!res.ok) return
       const data = await res.json()
