@@ -1,4 +1,4 @@
-import NextAuth, { NextAuthConfig } from "next-auth"
+import NextAuth, { NextAuthOptions } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import Google from "next-auth/providers/google"
 import Facebook from "next-auth/providers/facebook"
@@ -11,7 +11,9 @@ const loginSchema = z.object({
   password: z.string().min(4)
 })
 
-export const authConfig: NextAuthConfig = {
+import { getServerSession } from "next-auth/next"
+
+export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   providers: [
     Google({
@@ -78,4 +80,6 @@ export const authConfig: NextAuthConfig = {
   }
 }
 
-export const { handlers: authHandlers, auth } = NextAuth(authConfig)
+export async function auth() {
+  return await getServerSession(authOptions)
+}
