@@ -104,7 +104,7 @@ export default function HeroBooking() {
           </motion.div>
 
           <motion.div initial={{ scale: 0.98, opacity: 0 }} animate={{ scale:1, opacity:1 }} transition={{ duration: 0.7 }} className="w-full md:w-1/2 rounded-lg overflow-hidden shadow-xl">
-            <img src={courtImageUrl('padel court')} alt="Padel court" className="w-full h-72 object-cover" />
+            <img src={'https://content.sportyfriends.com/uploads/groups/2301/background/1661153483.webp'} alt="Padel court" className="w-full h-72 object-cover" />
           </motion.div>
         </div>
       </section>
