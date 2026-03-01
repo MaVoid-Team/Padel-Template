@@ -7,6 +7,9 @@ export default async function Dashboard() {
   const confirmed = bookings.filter(b=>b.status==='CONFIRMED').length
   return (
     <div className="space-y-6">
+      <div className="rounded-xl overflow-hidden border shadow-sm">
+        <img src="/images/dashboard/dashboard-banner.svg" alt="Dashboard banner" className="w-full h-44 md:h-52 object-cover" />
+      </div>
       <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Stat label="Courts" value={courts.length} />
@@ -16,6 +19,9 @@ export default async function Dashboard() {
       </div>
       <h2 className="text-xl font-semibold">Recent Bookings</h2>
       <div className="border divide-y">
+        {bookings.length === 0 && (
+          <div className="p-4 text-sm text-gray-500">No bookings yet.</div>
+        )}
         {bookings.map(b=>(
           <div key={b.id} className="p-2 text-sm flex justify-between">
             <div>{new Date(b.startTime).toLocaleString()} - {b.court.name}</div>

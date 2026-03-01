@@ -1,0 +1,15 @@
+<svg width="1600" height="420" viewBox="0 0 1600 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="420">
+      <stop stop-color="#1D4ED8"/>
+      <stop offset="1" stop-color="#0EA5E9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="420" rx="20" fill="url(#bg)"/>
+  <rect x="920" y="60" width="600" height="300" rx="18" fill="white" fill-opacity="0.12"/>
+  <rect x="980" y="120" width="150" height="170" rx="12" fill="white" fill-opacity="0.2"/>
+  <rect x="1160" y="170" width="150" height="120" rx="12" fill="white" fill-opacity="0.2"/>
+  <rect x="1340" y="100" width="150" height="190" rx="12" fill="white" fill-opacity="0.2"/>
+  <text x="70" y="175" fill="white" font-family="Arial, sans-serif" font-size="58" font-weight="700">Padel Admin Overview</text>
+  <text x="72" y="230" fill="white" fill-opacity="0.9" font-family="Arial, sans-serif" font-size="30">Track bookings, users, and court performance in one place.</text>
+</svg>

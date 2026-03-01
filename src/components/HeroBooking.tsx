@@ -34,8 +34,15 @@ export default function HeroBooking() {
     load()
   }, [])
 
-  function courtImageUrl(q: string) {
-    return `https://source.unsplash.com/1200x800/?${encodeURIComponent(q)}`
+  const courtImages = [
+    '/images/courts/court-1.svg',
+    '/images/courts/court-2.svg',
+    '/images/courts/court-3.svg',
+    '/images/courts/court-4.svg'
+  ]
+
+  function courtImageUrl(index: number) {
+    return courtImages[index % courtImages.length]
   }
 
   function openBooking(courtId: string) {
@@ -104,7 +111,7 @@ export default function HeroBooking() {
           </motion.div>
 
           <motion.div initial={{ scale: 0.98, opacity: 0 }} animate={{ scale:1, opacity:1 }} transition={{ duration: 0.7 }} className="w-full md:w-1/2 rounded-lg overflow-hidden shadow-xl">
-            <img src={'https://content.sportyfriends.com/uploads/groups/2301/background/1661153483.webp'} alt="Padel court" className="w-full h-72 object-cover" />
+            <img src="/images/hero/hero-padel.svg" alt="Padel court" className="w-full h-72 object-cover" />
           </motion.div>
         </div>
       </section>
@@ -112,10 +119,10 @@ export default function HeroBooking() {
       <section id="book-section" className="max-w-6xl mx-auto px-6 py-12">
         <h2 className="text-2xl font-semibold mb-4">Choose your court</h2>
         <div id="courts-gallery" className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {courts.map((c) => (
+          {courts.map((c, index) => (
             <motion.div key={c.id} whileHover={{ y: -6 }} className="bg-white rounded-lg overflow-hidden shadow">
               <div className="h-48 w-full relative">
-                <img src={courtImageUrl(c.imageQuery || c.name || 'padel court')} alt={c.name} className="w-full h-full object-cover" />
+                <img src={courtImageUrl(index)} alt={c.name} className="w-full h-full object-cover" />
                 <div className="absolute left-3 top-3 bg-black/40 text-white px-3 py-1 rounded">{c.name}</div>
               </div>
               <div className="p-4">

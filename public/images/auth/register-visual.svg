@@ -1,0 +1,17 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="900">
+      <stop stop-color="#22C55E"/>
+      <stop offset="1" stop-color="#16A34A"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="900" rx="24" fill="url(#bg)"/>
+  <rect x="130" y="120" width="940" height="660" rx="22" fill="white" fill-opacity="0.12"/>
+  <circle cx="900" cy="270" r="92" fill="#DCFCE7" fill-opacity="0.8"/>
+  <rect x="220" y="220" width="420" height="44" rx="10" fill="white" fill-opacity="0.68"/>
+  <rect x="220" y="290" width="530" height="24" rx="8" fill="white" fill-opacity="0.35"/>
+  <rect x="220" y="340" width="500" height="24" rx="8" fill="white" fill-opacity="0.35"/>
+  <rect x="220" y="390" width="470" height="24" rx="8" fill="white" fill-opacity="0.35"/>
+  <rect x="220" y="460" width="240" height="56" rx="12" fill="#0EA5E9"/>
+  <text x="220" y="190" fill="white" font-family="Arial, sans-serif" font-size="48" font-weight="700">Create your account</text>
+</svg>

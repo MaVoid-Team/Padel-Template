@@ -6,163 +6,130 @@ import 'react-big-calendar/lib/css/react-big-calendar.css'
 
 const localizer = momentLocalizer(moment)
 
-class CalendarErrorBoundary extends React.Component<any, { hasError: boolean; message?: string }> {
-  constructor(props:any) {
-    super(props)
-    this.state = { hasError: false }
-  }
-  static getDerivedStateFromError(error:any) {
-    return { hasError: true, message: error?.message }
-  }
-  componentDidCatch(error:any, info:any) {
-    console.error('Calendar rendering error', error, info)
-  }
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="p-4 text-red-600">
-          <div className="font-semibold">Calendar failed to render</div>
-          <div className="text-sm mt-2">{this.state.message ?? 'An error occurred while rendering the calendar.'}</div>
-          <div className="mt-3 flex gap-2">
-            <button className="px-3 py-1 border rounded" onClick={()=>window.location.reload()}>Retry</button>
-          </div>
-        </div>
-      )
-    }
-    return this.props.children
-  }
+interface ValidEvent {
+  title: string
+  start: Date
+  end: Date
+  allDay: boolean
+  resource?: any
 }
 
 export default function CalendarAvailability({ courtId }: { courtId?: string }) {
-  const [events, setEvents] = useState<any[]>([])
+  const [events, setEvents] = useState<ValidEvent[]>([])
   const [loaded, setLoaded] = useState(false)
-  const [rangeStart, setRangeStart] = useState<string>(()=>{
-    const d = new Date(); d.setDate(d.getDate()-7); return d.toISOString()
+  const [error, setError] = useState<string | null>(null)
+  const [rangeStart] = useState<string>(() => {
+    const d = new Date()
+    d.setDate(d.getDate() - 7)
+    return d.toISOString()
   })
-  const [rangeEnd, setRangeEnd] = useState<string>(()=>{
-    const d = new Date(); d.setDate(d.getDate()+30); return d.toISOString()
+  const [rangeEnd] = useState<string>(() => {
+    const d = new Date()
+    d.setDate(d.getDate() + 30)
+    return d.toISOString()
   })
 
-  useEffect(()=>{
+  useEffect(() => {
     if (!courtId) {
-      // No court selected -> show prompt message instead of a spinner
       setEvents([])
       setLoaded(false)
+      setError(null)
       return
     }
+
     async function load() {
-      const q = new URLSearchParams({ 
-        courtId: courtId!, // 👈 The '!' tells TS this won't be undefined
-        start: rangeStart, 
-        end: rangeEnd 
-      });
-      let res
       try {
-        res = await fetch('/api/bookings/availability?' + q.toString())
-      } catch (err) {
-        console.warn('Availability fetch failed (network error)', err)
-        // fall through to set dummy below
-      }
-      if (!res || !res.ok) {
-        console.warn('Availability fetch failed', res?.status)
-        // Provide a harmless fallback so UI can render
-        const now = new Date()
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0, 0)
-        const end = new Date(start.getTime() + 60 * 60 * 1000)
-        const dummy = [{ title: 'Availability not available', start, end, allDay: false, resource: null }]
-        setEvents(dummy as any)
-        setLoaded(true)
-        return
-      }
-      let data
-      try {
-        data = await res.json()
-      } catch (err) {
-        console.warn('Failed to parse availability JSON', err)
-        const now = new Date()
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0, 0)
-        const end = new Date(start.getTime() + 60 * 60 * 1000)
-        const dummy = [{ title: 'Availability not available', start, end, allDay: false, resource: null }]
-        setEvents(dummy as any)
-        setLoaded(true)
-        return
-      }
-      // Sanitize and validate bookings before passing to the calendar
-      const raw = Array.isArray(data) ? data : []
-      const mapped = raw.map((b:any)=>{
-        if (!b) return null
-        try {
-          const status = b?.status === 'CONFIRMED' ? 'Booked' : 'Pending'
-          const titleRaw = `${status} • ${b?.user?.email ?? 'Guest'}`
-          const start = b?.startTime ? new Date(b.startTime) : null
-          const end = b?.endTime ? new Date(b.endTime) : (start ? new Date(start.getTime()+60*60*1000) : null)
-          if (!start || isNaN(start.getTime()) || !end || isNaN(end.getTime())) {
-            console.warn('Skipping booking with invalid dates', b)
-            return null
-          }
-          return {
-            title: titleRaw,
-            start,
-            end,
-            allDay: false,
-            resource: b
-          }
-        } catch (err) {
-          console.warn('Skipping invalid booking', b, err)
-          return null
+        const q = new URLSearchParams({
+          courtId,
+          start: rangeStart,
+          end: rangeEnd
+        })
+        
+        const res = await fetch('/api/bookings/availability?' + q.toString())
+        
+        if (!res.ok) {
+          console.warn('Availability fetch failed', res.status)
+          setEvents([])
+          setLoaded(true)
+          return
         }
-      }).filter(Boolean as any)
 
-      // Ensure every event has a string title and normalized dates
-      const cleaned = mapped.map((e:any)=>{
-        const title = (e && (typeof e.title === 'string' ? e.title : String(e.title ?? 'Booked • Guest')))
-        return {
-          ...e,
-          title: title || 'Booked • Guest',
-          start: new Date(e.start),
-          end: new Date(e.end)
-        }
-      }).filter((e:any)=> e && typeof e.title === 'string')
+        const data = await res.json()
+        const raw = Array.isArray(data) ? data : []
 
-      if (cleaned.length !== mapped.length) {
-        console.warn('Corrected or dropped invalid events', { mappedCount: mapped.length, cleanedCount: cleaned.length, mappedFirst: mapped[0] })
-      }
+        // Map and validate each booking into a proper event
+        const validEvents: ValidEvent[] = raw
+          .filter((b: any) => b && typeof b === 'object')
+          .map((b: any) => {
+            try {
+              const startStr = b?.startTime
+              const endStr = b?.endTime
 
-      console.debug('Loaded availability events:', cleaned.length, cleaned.slice(0,3))
-      try {
-        // If no events were returned, supply a harmless dummy event so the
-        // calendar rendering code always has at least one valid event.
-        if (!cleaned || cleaned.length === 0) {
+              if (!startStr || !endStr) return null
+
+              const start = new Date(startStr)
+              const end = new Date(endStr)
+
+              if (isNaN(start.getTime()) || isNaN(end.getTime())) return null
+
+              const status = b?.status === 'CONFIRMED' ? 'Booked' : 'Pending'
+              const email =
+                typeof b?.user?.email === 'string' ? b.user.email : 'Guest'
+
+              return {
+                title: `${status} • ${email}`,
+                start,
+                end,
+                allDay: false,
+                resource: b
+              } as ValidEvent
+            } catch (err) {
+              console.warn('Error mapping booking', b, err)
+              return null
+            }
+          })
+          .filter((e: ValidEvent | null): e is ValidEvent => e !== null)
+
+        if (validEvents.length === 0) {
+          // No bookings — provide empty state
           const now = new Date()
-          const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0, 0)
+          const start = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+            9,
+            0,
+            0
+          )
           const end = new Date(start.getTime() + 60 * 60 * 1000)
-          const dummy = [{
-            title: 'No bookings available',
-            start,
-            end,
-            allDay: false,
-            resource: null
-          }]
-          console.info('Using dummy availability events as fallback')
-          setEvents(dummy as any)
-          setLoaded(true)
+          setEvents([
+            {
+              title: 'No bookings this month',
+              start,
+              end,
+              allDay: false,
+              resource: null
+            }
+          ])
         } else {
-          setEvents(cleaned as any)
-          setLoaded(true)
+          setEvents(validEvents)
         }
-      } catch (err) {
-        console.error('Failed to set calendar events', err, cleaned)
-        setEvents([])
+
         setLoaded(true)
+        setError(null)
+      } catch (err) {
+        console.error('Failed to load availability', err)
+        setLoaded(true)
+        setError('Failed to load availability')
+        setEvents([])
       }
     }
-    // Reset loaded and events when inputs change so error boundary / calendar remount
+
     setLoaded(false)
-    setEvents([])
     load()
   }, [courtId, rangeStart, rangeEnd])
 
-  const defaultDate = useMemo(()=> new Date(), [])
+  const defaultDate = useMemo(() => new Date(), [])
 
   return (
     <div className="bg-white rounded-lg shadow p-4 mt-6">
@@ -170,23 +137,37 @@ export default function CalendarAvailability({ courtId }: { courtId?: string }) 
         <div className="font-semibold">Court availability</div>
         <div className="text-sm text-gray-600">Showing upcoming 30 days</div>
       </div>
+
       {!courtId ? (
-        <div className="p-6 text-center text-sm text-gray-500">Select a court to view availability</div>
-      ) : loaded ? (
-        <CalendarErrorBoundary key={courtId ?? 'shared'}>
+        <div className="p-6 text-center text-sm text-gray-500">
+          Select a court to view availability
+        </div>
+      ) : error ? (
+        <div className="p-6 text-center text-sm text-red-600">{error}</div>
+      ) : !loaded ? (
+        <div className="p-6 text-center text-sm text-gray-500">
+          Loading availability…
+        </div>
+      ) : events.length > 0 ? (
+        <div style={{ height: 500 }}>
           <Calendar
             localizer={localizer}
             events={events}
             startAccessor="start"
             endAccessor="end"
-            style={{ height: 500 }}
+            style={{ height: '100%' }}
             defaultDate={defaultDate}
-            views={['week','day','agenda']}
-            components={{ event: ({ event }: any) => <div>{String(event?.title ?? 'Booked')}</div> }}
+            views={['week', 'day', 'agenda']}
+            defaultView="week"
+            eventPropGetter={() => ({
+              className: 'bg-blue-100 border-blue-300'
+            })}
           />
-        </CalendarErrorBoundary>
+        </div>
       ) : (
-        <div className="p-6 text-center text-sm text-gray-500">Loading availability…</div>
+        <div className="p-6 text-center text-sm text-gray-500">
+          No bookings in the next 30 days
+        </div>
       )}
     </div>
   )
