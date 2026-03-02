@@ -7,7 +7,7 @@ services:
     container_name: padel-club-app
     restart: unless-stopped
     env_file:
-      - ./.env.production
+      - ./.env
     environment:
       NODE_ENV: production
     ports:
