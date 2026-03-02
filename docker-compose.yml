@@ -11,7 +11,7 @@ services:
     environment:
       NODE_ENV: production
     ports:
-      - "127.0.0.1:3070:3000" # host-level Nginx will proxy to this
+      - "3070:3000" # host-level Nginx will proxy to this
     networks:
       - internal
     healthcheck:
