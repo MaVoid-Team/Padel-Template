@@ -1,58 +1,27 @@
-# Padel Reservation MVP (Next.js App Router)
+# Padel Club
 
-Features:
-- Auth: email/password, Google, Facebook, phone+password (MVP)
-- Courts CRUD (API for now), Bookings CRUD (create, cancel, reschedule)
-- Payments: Paymob (Accept) checkout + Cash on Arrival
-- Email notifications via Resend
-- Admin dashboard (stats + recent bookings)
+A ready-made booking page for padel clubs: players pick a court and time, pay by card or cash, and get an email confirmation.
 
-## Setup
+Padel Club is for club owners who want players to reserve a court without a phone call, and for players who just want an open slot, a way to pay, and a confirmation they can trust.
 
-1) Clone/unzip this folder.
-2) `npm i`
-3) Copy `.env.example` to `.env` and fill values.
-4) Start a Postgres DB (or use Supabase). Set `DATABASE_URL`.
-5) `npx prisma migrate dev` (creates tables).
-6) Seed at least one court (via Prisma Studio or POST /api/courts with admin session).
-7) `npm run dev` and open http://localhost:3000
+- Browse courts, pick a date and time, and reserve a slot before it is taken.
+- Sign in with email, phone, Google, or Facebook so your bookings stay with you.
+- Pay online by card or wallet, or choose cash when you arrive.
+- Get an email confirmation, then cancel or reschedule if plans change.
+- Club staff can watch courts, players, and recent bookings from an admin dashboard.
 
-## Deploy with Docker Compose + Nginx
+## Try it
 
-1) Copy `.env.example` to `.env` and set values. For Compose, `DATABASE_URL` should point to `db` service, e.g. `postgresql://padel:padel@db:5432/padel?schema=public`.
-2) On your VPS with Docker, run:
+Live demo: [https://padel-template.vercel.app](https://padel-template.vercel.app)
 
-	- Build and start: `docker compose up -d --build`
-	- Run migrations once (when schema changes): `docker compose run --rm migrate`
+## How it works
 
-3) Visit your server IP/domain on port 80. Adjust `NEXTAUTH_URL` and `APP_URL` to your domain.
+Players sign in, choose a court and slot, then pay online or in cash. Overlapping pending or confirmed bookings are blocked so two people cannot take the same hour. Confirmation emails go out after a reservation. Admins see court counts, players, and the latest bookings on the dashboard.
 
-Notes:
-- TLS: Terminate HTTPS at Nginx. Add certs (e.g., via certbot) and listen on 443 in `nginx/nginx.conf`.
-- Scaling: You can add `deploy.replicas` (Swarm) or use Docker Compose profiles and an external load balancer.
-- Logs: `docker compose logs -f app` and `docker compose logs -f nginx`.
-- Prisma: In containers, `DATABASE_URL` must be reachable from the app container. The provided Compose sets it to the `db` service by default.
+Developer setup: see [docs/SETUP.md](docs/SETUP.md).
 
-## Auth
+---
 
-- Email/Phone + password using Credentials provider.
-- Google/Facebook OAuth (set client ID/secret).
-- To make someone admin, set `role` to `ADMIN` in DB.
+Built by [Ziad Ahmed](https://github.com/Ziad-NasrEldin) at [MaVoid](https://mavoid.com).
 
-## Paymob
-
-- Fill `PAYMOB_API_KEY`, `PAYMOB_INTEGRATION_ID`, `PAYMOB_IFRAME_ID`, `PAYMOB_HMAC_SECRET` in `.env`.
-- The `/api/paymob/checkout` returns an iframe URL and redirects the client.
-- Implement proper HMAC verification in `/api/paymob/webhook` before production.
-
-## Resend (Email)
-
-- Fill `RESEND_API_KEY` and `RESEND_FROM` in `.env`.
-- Use `/api/notifications/email` to send confirmation/cancellation emails.
-
-## Notes
-
-- Availability check prevents overlapping PENDING/CONFIRMED bookings per court.
-- Amount is stored in piastres (cents) to avoid float issues.
-- Admin dashboard is a minimal MVP.
-- Extend UI with your branding and better calendar components.
+[Website](https://mavoid.com) · [LinkedIn](https://linkedin.com/in/ziad-ahmed-634202332) · [GitHub](https://github.com/Ziad-NasrEldin)
